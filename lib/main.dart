@@ -1,1 +1,361 @@
-import 'package:flutter/material.dart'; void main() { runApp(const SobarDokan()); } const green = Color(0xFF168B45); class SobarDokan extends StatelessWidget { const SobarDokan({super.key}); @override Widget build(BuildContext context) { return MaterialApp( debugShowCheckedModeBanner: false, title: 'সবার দোকান', theme: ThemeData( colorScheme: ColorScheme.fromSeed(seedColor: green), scaffoldBackgroundColor: const Color(0xFFF7FAF7), useMaterial3: true, ), home: const HomePage(), ); } } class HomePage extends StatefulWidget { const HomePage({super.key}); @override State<HomePage> createState() => _HomePageState(); } class _HomePageState extends State<HomePage> { int selectedIndex = 0; final List<Map<String, String>> products = [ {'name': 'সুন্দর শার্ট', 'price': '৫৫০ টাকা', 'emoji': '👕'}, {'name': 'মোবাইল ফোন', 'price': '১২,০০০ টাকা', 'emoji': '📱'}, {'name': 'হেডফোন', 'price': '৩৫০ টাকা', 'emoji': '🎧'}, {'name': 'হাতঘড়ি', 'price': '৭০০ টাকা', 'emoji': '⌚'}, ]; @override Widget build(BuildContext context) { return Scaffold( appBar: AppBar( backgroundColor: green, foregroundColor: Colors.white, title: const Text( '🛍️ সবার দোকান', style: TextStyle(fontWeight: FontWeight.bold), ), actions: [ IconButton( onPressed: () {}, icon: const Icon(Icons.notifications_none), ), ], ), body: IndexedStack( index: selectedIndex, children: [ homeScreen(), shopScreen(), sellScreen(), orderScreen(), profileScreen(), ], ), bottomNavigationBar: NavigationBar( selectedIndex: selectedIndex, onDestinationSelected: (index) { setState(() => selectedIndex = index); }, destinations: const [ NavigationDestination( icon: Icon(Icons.home_outlined), label: 'হোম', ), NavigationDestination( icon: Icon(Icons.storefront), label: 'দোকান', ), NavigationDestination( icon: Icon(Icons.add_circle_outline), label: 'বিক্রি', ), NavigationDestination( icon: Icon(Icons.shopping_bag_outlined), label: 'অর্ডার', ), NavigationDestination( icon: Icon(Icons.person_outline), label: 'প্রোফাইল', ), ], ), ); } Widget homeScreen() { return ListView( padding: const EdgeInsets.all(14), children: [ TextField( decoration: InputDecoration( hintText: 'আপনি কী খুঁজছেন?', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.white, border: OutlineInputBorder( borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none, ), ), ), const SizedBox(height: 18), Container( padding: const EdgeInsets.all(20), decoration: BoxDecoration( color: green, borderRadius: BorderRadius.circular(16), ), child: Column( crossAxisAlignment: CrossAxisAlignment.start, children: [ const Text( 'আপনার নিজের দোকান খুলুন!', style: TextStyle( color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold, ), ), const SizedBox(height: 8), const Text( 'সারা বাংলাদেশে পণ্য বিক্রি করুন।', style: TextStyle(color: Colors.white), ), const SizedBox(height: 14), ElevatedButton( onPressed: () => setState(() => selectedIndex = 1), child: const Text('দোকান খুলুন'), ), ], ), ), const SizedBox(height: 22), const Text( 'জনপ্রিয় ক্যাটাগরি', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold), ), const SizedBox(height: 12), Wrap( spacing: 10, runSpacing: 10, children: const [ CategoryItem('👕', 'পোশাক'), CategoryItem('📱', 'ইলেকট্রনিক্স'), CategoryItem('🍎', 'খাবার'), CategoryItem('🏠', 'ঘরবাড়ি'), CategoryItem('🐔', 'পশুপাখি'), CategoryItem('🐟', 'মাছ'), ], ), const SizedBox(height: 22), const Text( 'জনপ্রিয় পণ্য', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold), ), const SizedBox(height: 12), GridView.builder( shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: products.length, gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount( crossAxisCount: 2, childAspectRatio: 0.95, crossAxisSpacing: 12, mainAxisSpacing: 12, ), itemBuilder: (context, index) { final product = products[index]; return Card( color: Colors.white, child: Padding( padding: const EdgeInsets.all(12), child: Column( mainAxisAlignment: MainAxisAlignment.center, children: [ Text(product['emoji']!, style: const TextStyle(fontSize: 42)), const SizedBox(height: 8), Text(product['name']!), Text( product['price']!, style: const TextStyle( color: green, fontWeight: FontWeight.bold, ), ), const SizedBox(height: 6), ElevatedButton( onPressed: () { ScaffoldMessenger.of(context).showSnackBar( const SnackBar(content: Text('অর্ডার ফিচার পরের ধাপে যুক্ত হবে')), ); }, child: const Text('অর্ডার করুন'), ), ], ), ), ); }, ), ], ); } Widget shopScreen() { return ShopRegistration( onRegistered: () { ScaffoldMessenger.of(context).showSnackBar( const SnackBar(content: Text('দোকানের তথ্য ফর্মে গ্রহণ করা হয়েছে')), ); }, ); } Widget sellScreen() { return const Center( child: Text( 'পণ্য বিক্রির ব্যবস্থা পরের ধাপে যুক্ত হবে।', style: TextStyle(fontSize: 17), ), ); } Widget orderScreen() { return const Center( child: Text( 'আপনার অর্ডার এখানে দেখা যাবে।', style: TextStyle(fontSize: 17), ), ); } Widget profileScreen() { return const Center( child: Text( 'আপনার প্রোফাইল', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), ), ); } } class CategoryItem extends StatelessWidget { final String emoji; final String name; const CategoryItem(this.emoji, this.name, {super.key}); @override Widget build(BuildContext context) { return Container( width: 100, padding: const EdgeInsets.all(12), decoration: BoxDecoration( color: Colors.white, borderRadius: BorderRadius.circular(12), ), child: Column( children: [ Text(emoji, style: const TextStyle(fontSize: 28)), const SizedBox(height: 5), Text(name), ], ), ); } } class ShopRegistration extends StatefulWidget { final VoidCallback onRegistered; const ShopRegistration({super.key, required this.onRegistered}); @override State<ShopRegistration> createState() => _ShopRegistrationState(); } class _ShopRegistrationState extends State<ShopRegistration> { final formKey = GlobalKey<FormState>(); final shopName = TextEditingController(); final ownerName = TextEditingController(); final mobile = TextEditingController(); final address = TextEditingController(); @override void dispose() { shopName.dispose(); ownerName.dispose(); mobile.dispose(); address.dispose(); super.dispose(); } Widget field(String label, TextEditingController controller, {TextInputType type = TextInputType.text}) { return Padding( padding: const EdgeInsets.only(bottom: 14), child: TextFormField( controller: controller, keyboardType: type, validator: (value) { if (value == null || value.trim().isEmpty) { return 'এই ঘরটি পূরণ করুন'; } if (controller == mobile && !RegExp(r'^(01)[0-9]{9}$').hasMatch(value.trim())) { return 'সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন'; } return null; }, decoration: InputDecoration( labelText: label, filled: true, fillColor: Colors.white, border: OutlineInputBorder( borderRadius: BorderRadius.circular(12), ), ), ), ); } @override Widget build(BuildContext context) { return ListView( padding: const EdgeInsets.all(18), children: [ const Text( '🏪 নিজের দোকান খুলুন', style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold), ), const SizedBox(height: 8), const Text('আপনার দোকানের তথ্য নিচে লিখুন।'), const SizedBox(height: 20), Form( key: formKey, child: Column( children: [ field('দোকানের নাম', shopName), field('মালিকের নাম', ownerName), field('মোবাইল নম্বর', mobile, type: TextInputType.phone), field('সম্পূর্ণ ঠিকানা', address), SizedBox( width: double.infinity, height: 50, child: ElevatedButton( style: ElevatedButton.styleFrom( backgroundColor: green, foregroundColor: Colors.white, ), onPressed: () { if (formKey.currentState!.validate()) { widget.onRegistered(); } }, child: const Text( 'দোকান খোলার আবেদন করুন', style: TextStyle(fontSize: 16), ), ), ), const SizedBox(height: 12), const Text( 'এখানে OTP যাচাই প্রয়োজন নেই।', style: TextStyle(color: green), ), ], ), ), ], ); } }
+
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const SobarDokanApp());
+}
+
+class SobarDokanApp extends StatelessWidget {
+  const SobarDokanApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'সবার দোকান',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF168A45),
+        ),
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      home: const HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int selectedIndex = 0;
+  String searchText = '';
+
+  final List<String> categories = [
+    'সব পণ্য',
+    'মোবাইল',
+    'পোশাক',
+    'খাবার',
+    'মাছ',
+    'মুরগি',
+    'ইলেকট্রনিক্স',
+  ];
+
+  final List<Map<String, dynamic>> products = [
+    {'name': 'সুন্দর শার্ট', 'price': '৫৫০ টাকা', 'icon': Icons.checkroom},
+    {'name': 'স্মার্টফোন', 'price': '১২,০০০ টাকা', 'icon': Icons.phone_android},
+    {'name': 'দেশি মুরগি', 'price': '৭০০ টাকা', 'icon': Icons.egg},
+    {'name': 'গোল্ডফিশ', 'price': '১০০ টাকা', 'icon': Icons.water},
+    {'name': 'চাল', 'price': '৭০ টাকা/কেজি', 'icon': Icons.rice_bowl},
+    {'name': 'হেডফোন', 'price': '৩৫০ টাকা', 'icon': Icons.headphones},
+  ];
+
+  void openShop() {
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+    final addressController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('আপনার দোকান খুলুন'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'দোকানের নাম',
+                ),
+              ),
+              TextField(
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: 'মোবাইল নম্বর',
+                ),
+              ),
+              TextField(
+                controller: addressController,
+                decoration: const InputDecoration(
+                  labelText: 'দোকানের ঠিকানা',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('বাতিল'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (nameController.text.trim().isEmpty ||
+                  phoneController.text.trim().isEmpty ||
+                  addressController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('সব তথ্য পূরণ করুন'),
+                  ),
+                );
+                return;
+              }
+
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('দোকানের আবেদন গ্রহণ করা হয়েছে (ডেমো)'),
+                ),
+              );
+            },
+            child: const Text('আবেদন করুন'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget homeScreen() {
+    final filteredProducts = products.where((product) {
+      return product['name'].toString().contains(searchText);
+    }).toList();
+
+    return ListView(
+      padding: const EdgeInsets.all(15),
+      children: [
+        TextField(
+          onChanged: (value) {
+            setState(() {
+              searchText = value;
+            });
+          },
+          decoration: InputDecoration(
+            hintText: 'আপনার প্রয়োজনীয় পণ্য খুঁজুন...',
+            prefixIcon: const Icon(Icons.search),
+            filled: true,
+            fillColor: Colors.green.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.green.shade700,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'সবার দোকান',
+                style: TextStyle(
+                  fontSize: 27,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'আপনার দোকান, সবার বাজার!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: openShop,
+            icon: const Icon(Icons.store),
+            label: const Text('আপনার দোকান খুলুন'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.all(15),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+        const Text(
+          'পণ্যের ক্যাটাগরি',
+          style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: categories.map((category) {
+            return ActionChip(
+              label: Text(category),
+              onPressed: () {
+                setState(() {
+                  searchText = category == 'সব পণ্য' ? '' : category;
+                });
+              },
+            );
+          }).toList(),
+        ),
+
+        const SizedBox(height: 20),
+        const Text(
+          'জনপ্রিয় পণ্যসমূহ',
+          style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: filteredProducts.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.95,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+          ),
+          itemBuilder: (context, index) {
+            final product = filteredProducts[index];
+
+            return Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      product['icon'],
+                      size: 48,
+                      color: Colors.green,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      product['name'],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      product['price'],
+                      style: const TextStyle(color: Colors.green),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'পণ্য দেখুন',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+
+        if (filteredProducts.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(20),
+            child: Text('কোনো পণ্য পাওয়া যায়নি'),
+          ),
+      ],
+    );
+  }
+
+  Widget otherScreen(String title, IconData icon) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 70, color: Colors.green),
+          const SizedBox(height: 15),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 23,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      homeScreen(),
+      otherScreen('সকল ক্যাটাগরি', Icons.category),
+      otherScreen('আমার অর্ডার', Icons.shopping_bag),
+      otherScreen('আমার প্রোফাইল', Icons.person),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        title: const Text(
+          'সবার দোকান',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('নোটিফিকেশন')),
+              );
+            },
+            icon: const Icon(Icons.notifications),
+          ),
+        ],
+      ),
+      body: pages[selectedIndex],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            selectedIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home),
+            label: 'হোম',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.category),
+            label: 'ক্যাটাগরি',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.shopping_bag),
+            label: 'অর্ডার',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person),
+            label: 'প্রোফাইল',
+          ),
+        ],
+      ),
+    );
+  }
+}
