@@ -834,4 +834,3 @@ class SimplePage extends StatelessWidget {
     );
   }
 }
-}
