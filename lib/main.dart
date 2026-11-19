@@ -1,9 +1,18 @@
 
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+   url: 'https://pivybwyqhlrimiqgjuak.supabase.co',
+    anonKey: 'sb_publishable_UXSj9F-mf00LQ_vhsN0QDQ_FXLclpyX',
+  );
+
   runApp(const SobarDokanApp());
 }
+
 
 class SobarDokanApp extends StatelessWidget {
   const SobarDokanApp({super.key});
