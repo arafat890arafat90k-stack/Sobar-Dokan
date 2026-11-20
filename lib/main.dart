@@ -453,8 +453,9 @@ class _ProfilePageState extends State<ProfilePage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('বাতিল'),
           ),
+         
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (nameController.text.trim().isEmpty ||
                   phoneController.text.trim().isEmpty ||
                   addressController.text.trim().isEmpty) {
@@ -466,21 +467,44 @@ class _ProfilePageState extends State<ProfilePage> {
                 return;
               }
 
-              setState(() {
-                shopName = nameController.text.trim();
-                phone = phoneController.text.trim();
-                address = addressController.text.trim();
-              });
+              try {
+                await Supabase.instance.client
+                    .from('shop_applications')
+                    .insert({
+                  'owner_name': userName,
+                  'shop_name': nameController.text.trim(),
+                  'phone': phoneController.text.trim(),
+                  'address': addressController.text.trim(),
+                });
 
-              Navigator.pop(dialogContext);
+                if (!mounted) return;
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('দোকানের আবেদন গ্রহণ করা হয়েছে (ডেমো)'),
-                ),
-              );
+                setState(() {
+                  shopName = nameController.text.trim();
+                  phone = phoneController.text.trim();
+                  address = addressController.text.trim();
+                });
+
+                Navigator.pop(dialogContext);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('দোকানের আবেদন সফলভাবে জমা হয়েছে'),
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('আবেদন জমা হয়নি: $e'),
+                  ),
+                );
+              }
             },
             child: const Text('আবেদন করুন'),
+          
+
           ),
         ],
       ),
