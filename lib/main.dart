@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
     {'name': 'স্মার্টফোন', 'price': '১২,০০০ টাকা',
       'category': 'মোবাইল', 'icon': Icons.phone_android},
     {'name': 'দেশি মুরগি', 'price': '৭০০ টাকা',
-      'category': 'মুরগি', 'icon': Icons.egg},
+      'category': 'মুরগি', 'icon': Icons.egg_alt},
     {'name': 'গোল্ডফিশ', 'price': '১০০ টাকা',
       'category': 'মাছ', 'icon': Icons.water},
     {'name': 'চাল', 'price': '৭০ টাকা/কেজি',
