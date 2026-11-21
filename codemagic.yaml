@@ -6,6 +6,8 @@ workflows:
 
     environment:
       flutter: stable
+      groups:
+        - supabase
 
     scripts:
       - name: Generate Android project files
