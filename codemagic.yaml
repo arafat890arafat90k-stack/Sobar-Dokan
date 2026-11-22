@@ -13,6 +13,18 @@ workflows:
       - name: Generate Android project files
         script: flutter create --platforms=android .
 
+      - name: Add Android Internet Permission
+        script: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          s = p.read_text()
+          permission = '    <uses-permission android:name="android.permission.INTERNET" />'
+          if permission not in s:
+              s = s.replace("<application", permission + "\n    <application", 1)
+          p.write_text(s)
+          PY
+
       - name: Get Flutter packages
         script: flutter pub get
 
