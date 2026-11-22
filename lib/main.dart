@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+final supabase = Supabase.instance.client;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -99,12 +101,12 @@ class _HomePageState extends State<HomePage> {
   ];
 
   Widget homeScreen() {
-    final filteredProducts = products.where((product) {
+    final filtered = products.where((p) {
       final categoryMatch =
           selectedCategory == 'সব পণ্য' ||
-          product['category'] == selectedCategory;
+          p['category'] == selectedCategory;
 
-      final searchMatch = product['name']
+      final searchMatch = p['name']
           .toString()
           .toLowerCase()
           .contains(searchText.toLowerCase());
@@ -116,11 +118,7 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.all(15),
       children: [
         TextField(
-          onChanged: (value) {
-            setState(() {
-              searchText = value;
-            });
-          },
+          onChanged: (v) => setState(() => searchText = v),
           decoration: InputDecoration(
             hintText: 'আপনার প্রয়োজনীয় পণ্য খুঁজুন...',
             prefixIcon: const Icon(Icons.search),
@@ -133,7 +131,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         const SizedBox(height: 20),
-
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -162,32 +159,25 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-
         const SizedBox(height: 20),
-
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ShopPage(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.store),
-            label: const Text('আপনার দোকান খুলুন'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.all(15),
-            ),
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ShopPage(),
+              ),
+            );
+          },
+          icon: const Icon(Icons.store),
+          label: const Text('আপনার দোকান খুলুন'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.all(15),
           ),
         ),
-
         const SizedBox(height: 20),
-
         const Text(
           'পণ্যের ক্যাটাগরি',
           style: TextStyle(
@@ -195,9 +185,7 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
         const SizedBox(height: 10),
-
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -214,9 +202,7 @@ class _HomePageState extends State<HomePage> {
             );
           }).toList(),
         ),
-
         const SizedBox(height: 20),
-
         const Text(
           'জনপ্রিয় পণ্যসমূহ',
           style: TextStyle(
@@ -224,13 +210,11 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
         const SizedBox(height: 12),
-
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: filteredProducts.length,
+          itemCount: filtered.length,
           gridDelegate:
               const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
@@ -239,23 +223,22 @@ class _HomePageState extends State<HomePage> {
             mainAxisSpacing: 12,
           ),
           itemBuilder: (context, index) {
-            final product = filteredProducts[index];
+            final p = filtered[index];
 
             return Card(
-              elevation: 2,
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      product['icon'] as IconData,
+                      p['icon'] as IconData,
                       size: 48,
                       color: Colors.green,
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      product['name'].toString(),
+                      p['name'],
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -263,10 +246,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      product['price'].toString(),
-                      style: const TextStyle(
-                        color: Colors.green,
-                      ),
+                      p['price'],
+                      style: const TextStyle(color: Colors.green),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -279,14 +260,8 @@ class _HomePageState extends State<HomePage> {
             );
           },
         ),
-
-        if (filteredProducts.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(20),
-            child: Center(
-              child: Text('কোনো পণ্য পাওয়া যায়নি'),
-            ),
-          ),
+        if (filtered.isEmpty)
+          const Center(child: Text('কোনো পণ্য পাওয়া যায়নি')),
       ],
     );
   }
@@ -306,15 +281,9 @@ class _HomePageState extends State<HomePage> {
         ...categories.map(
           (category) => Card(
             child: ListTile(
-              leading: const Icon(
-                Icons.category,
-                color: Colors.green,
-              ),
+              leading: const Icon(Icons.category, color: Colors.green),
               title: Text(category),
-              trailing: const Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-              ),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 setState(() {
                   selectedCategory = category;
@@ -354,8 +323,7 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(
                   builder: (_) => const SimplePage(
                     title: 'নোটিফিকেশন',
-                    message:
-                        'আপনার নতুন নোটিফিকেশন এখানে দেখা যাবে।',
+                    message: 'আপনার নতুন নোটিফিকেশন এখানে দেখা যাবে।',
                     icon: Icons.notifications,
                   ),
                 ),
@@ -365,18 +333,14 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-
       body: IndexedStack(
         index: selectedIndex,
         children: pages,
       ),
-
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
+          setState(() => selectedIndex = index);
         },
         destinations: const [
           NavigationDestination(
@@ -422,46 +386,40 @@ class _ProfilePageState extends State<ProfilePage> {
   bool notifications = true;
 
   Future<void> editProfile() async {
-    final nameController = TextEditingController(text: userName);
-    final phoneController = TextEditingController(text: phone);
+    final name = TextEditingController(text: userName);
+    final mobile = TextEditingController(text: phone);
 
     await showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('ব্যক্তিগত তথ্য'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'আপনার নাম',
-              ),
+              controller: name,
+              decoration: const InputDecoration(labelText: 'আপনার নাম'),
             ),
             TextField(
-              controller: phoneController,
+              controller: mobile,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: 'মোবাইল নম্বর',
-              ),
+              decoration: const InputDecoration(labelText: 'মোবাইল নম্বর'),
             ),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('বাতিল'),
           ),
           ElevatedButton(
             onPressed: () {
-              if (nameController.text.trim().isEmpty) return;
-
+              if (name.text.trim().isEmpty) return;
               setState(() {
-                userName = nameController.text.trim();
-                phone = phoneController.text.trim();
+                userName = name.text.trim();
+                phone = mobile.text.trim();
               });
-
-              Navigator.pop(dialogContext);
+              Navigator.pop(ctx);
             },
             child: const Text('সংরক্ষণ করুন'),
           ),
@@ -469,97 +427,82 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
 
-    nameController.dispose();
-    phoneController.dispose();
+    name.dispose();
+    mobile.dispose();
   }
 
   Future<void> openShop() async {
-    final nameController = TextEditingController(text: shopName);
-    final phoneController = TextEditingController(text: phone);
-    final addressController = TextEditingController(text: address);
+    final name = TextEditingController(text: shopName);
+    final mobile = TextEditingController(text: phone);
+    final location = TextEditingController(text: address);
 
     await showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('আপনার দোকান খুলুন'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'দোকানের নাম',
-                ),
+                controller: name,
+                decoration: const InputDecoration(labelText: 'দোকানের নাম'),
               ),
               TextField(
-                controller: phoneController,
+                controller: mobile,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'মোবাইল নম্বর',
-                ),
+                decoration: const InputDecoration(labelText: 'মোবাইল নম্বর'),
               ),
               TextField(
-                controller: addressController,
-                decoration: const InputDecoration(
-                  labelText: 'দোকানের ঠিকানা',
-                ),
+                controller: location,
+                decoration: const InputDecoration(labelText: 'দোকানের ঠিকানা'),
               ),
             ],
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('বাতিল'),
           ),
           ElevatedButton(
             onPressed: () async {
-              if (nameController.text.trim().isEmpty ||
-                  phoneController.text.trim().isEmpty ||
-                  addressController.text.trim().isEmpty) {
+              if (name.text.trim().isEmpty ||
+                  mobile.text.trim().isEmpty ||
+                  location.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('সব তথ্য পূরণ করুন'),
-                  ),
+                  const SnackBar(content: Text('সব তথ্য পূরণ করুন')),
                 );
                 return;
               }
 
               try {
-                await Supabase.instance.client
-                    .from('shop_applications')
-                    .insert({
+                await supabase.from('shop_applications').insert({
                   'owner_name': userName,
-                  'shop_name': nameController.text.trim(),
-                  'phone': phoneController.text.trim(),
-                  'address': addressController.text.trim(),
+                  'shop_name': name.text.trim(),
+                  'phone': mobile.text.trim(),
+                  'address': location.text.trim(),
                 });
 
                 if (!mounted) return;
 
                 setState(() {
-                  shopName = nameController.text.trim();
-                  phone = phoneController.text.trim();
-                  address = addressController.text.trim();
+                  shopName = name.text.trim();
+                  phone = mobile.text.trim();
+                  address = location.text.trim();
                 });
 
-                Navigator.pop(dialogContext);
+                Navigator.pop(ctx);
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text(
-                      'দোকানের আবেদন সফলভাবে জমা হয়েছে',
-                    ),
+                    content: Text('দোকানের আবেদন সফলভাবে জমা হয়েছে'),
                   ),
                 );
               } catch (e) {
                 if (!mounted) return;
-
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('আবেদন জমা হয়নি: $e'),
-                  ),
+                  SnackBar(content: Text('আবেদন জমা হয়নি: $e')),
                 );
               }
             },
@@ -569,9 +512,9 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
 
-    nameController.dispose();
-    phoneController.dispose();
-    addressController.dispose();
+    name.dispose();
+    mobile.dispose();
+    location.dispose();
   }
 
   Future<void> editAddress() async {
@@ -579,7 +522,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     await showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('ডেলিভারি ঠিকানা'),
         content: TextField(
           controller: controller,
@@ -591,15 +534,13 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('বাতিল'),
           ),
           ElevatedButton(
             onPressed: () {
-              setState(() {
-                address = controller.text.trim();
-              });
-              Navigator.pop(dialogContext);
+              setState(() => address = controller.text.trim());
+              Navigator.pop(ctx);
             },
             child: const Text('সংরক্ষণ'),
           ),
@@ -623,13 +564,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget menuItem(
-    String title,
-    IconData icon,
-    VoidCallback onTap,
-  ) {
+  Widget menuItem(String title, IconData icon, VoidCallback onTap) {
     return Card(
-      elevation: 1,
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: Icon(icon, color: Colors.green),
@@ -656,11 +592,7 @@ class _ProfilePageState extends State<ProfilePage> {
               const CircleAvatar(
                 radius: 32,
                 backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.person,
-                  size: 40,
-                  color: Colors.green,
-                ),
+                child: Icon(Icons.person, size: 40, color: Colors.green),
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -675,11 +607,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 5),
                     Text(
-                      phone.isEmpty
-                          ? 'আপনার নম্বর যোগ করুন'
-                          : phone,
+                      phone.isEmpty ? 'আপনার নম্বর যোগ করুন' : phone,
                       style: const TextStyle(color: Colors.white),
                     ),
                   ],
@@ -687,35 +616,23 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               IconButton(
                 onPressed: editProfile,
-                icon: const Icon(
-                  Icons.edit,
-                  color: Colors.white,
-                ),
+                icon: const Icon(Icons.edit, color: Colors.white),
               ),
             ],
           ),
         ),
-
         const SizedBox(height: 20),
-
         const Text(
           'আমার অ্যাকাউন্ট',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-
         const SizedBox(height: 10),
-
         menuItem('ব্যক্তিগত তথ্য', Icons.person, editProfile),
-
         menuItem(
           shopName.isEmpty ? 'আমার দোকান খুলুন' : 'আমার দোকান: $shopName',
           Icons.store,
           openShop,
         ),
-
         menuItem(
           'আমার অর্ডার',
           Icons.shopping_bag,
@@ -725,43 +642,23 @@ class _ProfilePageState extends State<ProfilePage> {
             Icons.shopping_bag,
           ),
         ),
-
-        menuItem(
-          'ডেলিভারি ঠিকানা',
-          Icons.location_on,
-          editAddress,
-        ),
-
+        menuItem('ডেলিভারি ঠিকানা', Icons.location_on, editAddress),
         const SizedBox(height: 12),
-
         const Text(
           'অন্যান্য সেটিংস',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-
         const SizedBox(height: 10),
-
         Card(
           child: SwitchListTile(
-            secondary: const Icon(
-              Icons.notifications,
-              color: Colors.green,
-            ),
+            secondary: const Icon(Icons.notifications, color: Colors.green),
             title: const Text('নোটিফিকেশন'),
             subtitle: const Text('নতুন খবর ও আপডেট পান'),
             value: notifications,
             activeColor: Colors.green,
-            onChanged: (value) {
-              setState(() {
-                notifications = value;
-              });
-            },
+            onChanged: (v) => setState(() => notifications = v),
           ),
         ),
-
         menuItem(
           'কাস্টমার সাপোর্ট',
           Icons.support_agent,
@@ -771,7 +668,6 @@ class _ProfilePageState extends State<ProfilePage> {
             Icons.support_agent,
           ),
         ),
-
         menuItem(
           'গোপনীয়তা নীতি',
           Icons.privacy_tip,
@@ -781,7 +677,6 @@ class _ProfilePageState extends State<ProfilePage> {
             Icons.privacy_tip,
           ),
         ),
-
         menuItem(
           'অ্যাপ সম্পর্কে',
           Icons.info,
@@ -791,29 +686,548 @@ class _ProfilePageState extends State<ProfilePage> {
             Icons.store,
           ),
         ),
-
+        const Divider(height: 25),
+        const Text(
+          'অ্যাডমিন নিয়ন্ত্রণ',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
         menuItem(
-          'লগআউট',
-          Icons.logout,
+          'অ্যাডমিন লগইন',
+          Icons.admin_panel_settings,
           () {
-            showDialog(
-              context: context,
-              builder: (dialogContext) => AlertDialog(
-                title: const Text('লগআউট'),
-                content: const Text(
-                  'লগইন ব্যবস্থা এখনো যুক্ত করা হয়নি।',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    child: const Text('ঠিক আছে'),
-                  ),
-                ],
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AdminLoginPage(),
               ),
             );
           },
         ),
+        if (supabase.auth.currentUser != null)
+          menuItem(
+            'লগআউট',
+            Icons.logout,
+            () async {
+              await supabase.auth.signOut();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('লগআউট হয়েছে')),
+                );
+                setState(() {});
+              }
+            },
+          ),
       ],
+    );
+  }
+}
+
+// ADMIN LOGIN PAGE
+
+class AdminLoginPage extends StatefulWidget {
+  const AdminLoginPage({super.key});
+
+  @override
+  State<AdminLoginPage> createState() => _AdminLoginPageState();
+}
+
+class _AdminLoginPageState extends State<AdminLoginPage> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  bool loading = false;
+  bool hidePassword = true;
+
+  Future<void> login() async {
+    if (emailController.text.trim().isEmpty ||
+        passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ইমেইল ও পাসওয়ার্ড লিখুন')),
+      );
+      return;
+    }
+
+    setState(() => loading = true);
+
+    try {
+      await supabase.auth.signInWithPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
+
+      final user = supabase.auth.currentUser;
+
+      if (user == null) {
+        throw Exception('লগইন পাওয়া যায়নি');
+      }
+
+      final admin = await supabase
+          .from('app_admins')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (admin == null) {
+        await supabase.auth.signOut();
+        throw Exception('আপনার অ্যাডমিন অনুমতি নেই');
+      }
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AdminDashboardPage(
+            role: admin['role'].toString(),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('লগইন হয়নি: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('অ্যাডমিন লগইন'),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(25),
+          child: Column(
+            children: [
+              const Icon(
+                Icons.admin_panel_settings,
+                size: 85,
+                color: Colors.green,
+              ),
+              const SizedBox(height: 15),
+              const Text(
+                'সবার দোকান অ্যাডমিন',
+                style: TextStyle(
+                  fontSize: 23,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 25),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'অ্যাডমিন ইমেইল',
+                  prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                controller: passwordController,
+                obscureText: hidePassword,
+                decoration: InputDecoration(
+                  labelText: 'পাসওয়ার্ড',
+                  prefixIcon: const Icon(Icons.lock),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() => hidePassword = !hidePassword);
+                    },
+                    icon: Icon(
+                      hidePassword ? Icons.visibility : Icons.visibility_off,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 25),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: loading ? null : login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('লগইন করুন'),
+                ),
+              ),
+              const SizedBox(height: 15),
+              const Text(
+                'শুধু অনুমোদিত অ্যাডমিন প্রবেশ করতে পারবেন।',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ADMIN DASHBOARD
+
+class AdminDashboardPage extends StatefulWidget {
+  final String role;
+
+  const AdminDashboardPage({
+    super.key,
+    required this.role,
+  });
+
+  @override
+  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+}
+
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  late Future<List<Map<String, dynamic>>> applicationsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    applicationsFuture = loadApplications();
+  }
+
+  Future<List<Map<String, dynamic>>> loadApplications() async {
+    final data = await supabase
+        .from('shop_applications')
+        .select('id, owner_name, shop_name, phone, address, status, created_at')
+        .order('created_at', ascending: false);
+
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  void refreshApplications() {
+    setState(() {
+      applicationsFuture = loadApplications();
+    });
+  }
+
+  Future<void> changeStatus(
+    Map<String, dynamic> application,
+    String status,
+  ) async {
+    try {
+      await supabase
+          .from('shop_applications')
+          .update({'status': status})
+          .eq('id', application['id']);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            status == 'approved'
+                ? 'দোকানের আবেদন অনুমোদন করা হয়েছে'
+                : 'দোকানের আবেদন বাতিল করা হয়েছে',
+          ),
+        ),
+      );
+
+      refreshApplications();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('সমস্যা হয়েছে: $e')),
+      );
+    }
+  }
+
+  Future<void> logout() async {
+    await supabase.auth.signOut();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const HomePage()),
+      (route) => false,
+    );
+  }
+
+  Widget applicationCard(Map<String, dynamic> item) {
+    final status = item['status']?.toString() ?? 'pending';
+
+    final statusText = status == 'approved'
+        ? 'অনুমোদিত'
+        : status == 'rejected'
+            ? 'বাতিল'
+            : 'অপেক্ষমাণ';
+
+    final statusColor = status == 'approved'
+        ? Colors.green
+        : status == 'rejected'
+            ? Colors.red
+            : Colors.orange;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 13),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const CircleAvatar(
+                  backgroundColor: Color(0xFFE5F5E9),
+                  child: Icon(Icons.store, color: Colors.green),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    item['shop_name']?.toString() ?? '',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Chip(
+                  label: Text(statusText),
+                  backgroundColor: statusColor.withAlpha(30),
+                  labelStyle: TextStyle(color: statusColor),
+                ),
+              ],
+            ),
+            const Divider(),
+            Text('মালিক: ${item['owner_name'] ?? ''}'),
+            Text('মোবাইল: ${item['phone'] ?? ''}'),
+            Text('ঠিকানা: ${item['address'] ?? ''}'),
+            if (status == 'pending') ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => changeStatus(item, 'approved'),
+                      icon: const Icon(Icons.check),
+                      label: const Text('অনুমোদন'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => changeStatus(item, 'rejected'),
+                      icon: const Icon(Icons.close),
+                      label: const Text('বাতিল'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('অ্যাডমিন ড্যাশবোর্ড'),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            onPressed: refreshApplications,
+            icon: const Icon(Icons.refresh),
+          ),
+          IconButton(
+            onPressed: logout,
+            icon: const Icon(Icons.logout),
+          ),
+        ],
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: applicationsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.green),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('আবেদন লোড করা যায়নি'),
+                    const SizedBox(height: 10),
+                    Text(
+                      '${snapshot.error}',
+                      textAlign: TextAlign.center,
+                    ),
+                    ElevatedButton(
+                      onPressed: refreshApplications,
+                      child: const Text('আবার চেষ্টা করুন'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final applications = snapshot.data ?? [];
+
+          final pending = applications
+              .where((a) => a['status'] == 'pending')
+              .length;
+
+          final approved = applications
+              .where((a) => a['status'] == 'approved')
+              .length;
+
+          final rejected = applications
+              .where((a) => a['status'] == 'rejected')
+              .length;
+
+          return RefreshIndicator(
+            onRefresh: () async => refreshApplications(),
+            child: ListView(
+              padding: const EdgeInsets.all(15),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade700,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'সবার দোকান',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        widget.role == 'super_admin'
+                            ? 'সুপার অ্যাডমিন'
+                            : 'অ্যাডমিন',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _statCard(
+                        'নতুন আবেদন',
+                        pending,
+                        Colors.orange,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _statCard(
+                        'অনুমোদিত',
+                        approved,
+                        Colors.green,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _statCard(
+                        'বাতিল',
+                        rejected,
+                        Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                const Text(
+                  'দোকানের আবেদনসমূহ',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (applications.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(30),
+                    child: Center(
+                      child: Text('এখনো কোনো আবেদন পাওয়া যায়নি'),
+                    ),
+                  ),
+                ...applications.map(applicationCard),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _statCard(String title, int count, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color.withAlpha(25),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -890,7 +1304,7 @@ class OrdersPage extends StatelessWidget {
   }
 }
 
-// GENERAL INFORMATION PAGE
+// SIMPLE PAGE
 
 class SimplePage extends StatelessWidget {
   final String title;
@@ -947,8 +1361,7 @@ class ApprovedShopsPage extends StatefulWidget {
   const ApprovedShopsPage({super.key});
 
   @override
-  State<ApprovedShopsPage> createState() =>
-      _ApprovedShopsPageState();
+  State<ApprovedShopsPage> createState() => _ApprovedShopsPageState();
 }
 
 class _ApprovedShopsPageState extends State<ApprovedShopsPage> {
@@ -961,7 +1374,7 @@ class _ApprovedShopsPageState extends State<ApprovedShopsPage> {
   }
 
   Future<List<Map<String, dynamic>>> loadShops() async {
-    final response = await Supabase.instance.client
+    final response = await supabase
         .from('shop_applications')
         .select('owner_name, shop_name, phone, address')
         .eq('status', 'approved')
@@ -971,9 +1384,7 @@ class _ApprovedShopsPageState extends State<ApprovedShopsPage> {
   }
 
   void refreshShops() {
-    setState(() {
-      shopsFuture = loadShops();
-    });
+    setState(() => shopsFuture = loadShops());
   }
 
   @override
@@ -995,9 +1406,7 @@ class _ApprovedShopsPageState extends State<ApprovedShopsPage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(
-                color: Colors.green,
-              ),
+              child: CircularProgressIndicator(color: Colors.green),
             );
           }
 
@@ -1028,21 +1437,7 @@ class _ApprovedShopsPageState extends State<ApprovedShopsPage> {
 
           if (shops.isEmpty) {
             return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.store_outlined,
-                    size: 75,
-                    color: Colors.green,
-                  ),
-                  SizedBox(height: 15),
-                  Text(
-                    'এখনো কোনো অনুমোদিত দোকান নেই',
-                    style: TextStyle(fontSize: 17),
-                  ),
-                ],
-              ),
+              child: Text('এখনো কোনো অনুমোদিত দোকান নেই'),
             );
           }
 
@@ -1053,34 +1448,15 @@ class _ApprovedShopsPageState extends State<ApprovedShopsPage> {
               final shop = shops[index];
 
               return Card(
-                elevation: 2,
-                margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.all(12),
                   leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFE5F5E9),
-                    child: Icon(
-                      Icons.store,
-                      color: Colors.green,
-                    ),
+                    child: Icon(Icons.store, color: Colors.green),
                   ),
-                  title: Text(
-                    shop['shop_name'] ?? '',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 17,
-                    ),
+                  title: Text(shop['shop_name'] ?? ''),
+                  subtitle: Text(
+                    'মালিক: ${shop['owner_name'] ?? ''}',
                   ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(
-                      'মালিক: ${shop['owner_name'] ?? ''}',
-                    ),
-                  ),
-                  trailing: const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 17,
-                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 17),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -1099,7 +1475,7 @@ class _ApprovedShopsPageState extends State<ApprovedShopsPage> {
   }
 }
 
-// SHOP DETAILS PAGE
+// SHOP DETAILS
 
 class ShopDetailsPage extends StatelessWidget {
   final Map<String, dynamic> shop;
@@ -1123,11 +1499,7 @@ class ShopDetailsPage extends StatelessWidget {
           const CircleAvatar(
             radius: 45,
             backgroundColor: Color(0xFFE5F5E9),
-            child: Icon(
-              Icons.store,
-              size: 50,
-              color: Colors.green,
-            ),
+            child: Icon(Icons.store, size: 50, color: Colors.green),
           ),
           const SizedBox(height: 20),
           Center(
@@ -1137,46 +1509,26 @@ class ShopDetailsPage extends StatelessWidget {
                 fontSize: 23,
                 fontWeight: FontWeight.bold,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 10),
-          const Center(
-            child: Chip(
-              avatar: Icon(
-                Icons.verified,
-                color: Colors.green,
-              ),
-              label: Text('অনুমোদিত দোকান'),
-            ),
-          ),
-          const SizedBox(height: 25),
+          const SizedBox(height: 20),
           Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(
-                    Icons.person,
-                    color: Colors.green,
-                  ),
+                  leading: const Icon(Icons.person, color: Colors.green),
                   title: const Text('দোকানের মালিক'),
                   subtitle: Text(shop['owner_name'] ?? ''),
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(
-                    Icons.phone,
-                    color: Colors.green,
-                  ),
+                  leading: const Icon(Icons.phone, color: Colors.green),
                   title: const Text('মোবাইল নম্বর'),
                   subtitle: Text(shop['phone'] ?? ''),
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(
-                    Icons.location_on,
-                    color: Colors.green,
-                  ),
+                  leading: const Icon(Icons.location_on, color: Colors.green),
                   title: const Text('দোকানের ঠিকানা'),
                   subtitle: Text(shop['address'] ?? ''),
                 ),
