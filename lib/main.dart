@@ -1,5 +1,4 @@
 
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -14,7 +13,7 @@ Future<void> main() async {
   runApp(const SobarDokanApp());
 }
 
-
+// APP
 
 class SobarDokanApp extends StatelessWidget {
   const SobarDokanApp({super.key});
@@ -35,6 +34,8 @@ class SobarDokanApp extends StatelessWidget {
     );
   }
 }
+
+// HOME PAGE
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -59,23 +60,48 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final List<Map<String, dynamic>> products = [
-    {'name': 'সুন্দর শার্ট', 'price': '৫৫০ টাকা',
-      'category': 'পোশাক', 'icon': Icons.checkroom},
-    {'name': 'স্মার্টফোন', 'price': '১২,০০০ টাকা',
-      'category': 'মোবাইল', 'icon': Icons.phone_android},
-    {'name': 'দেশি মুরগি', 'price': '৭০০ টাকা',
-      'category': 'মুরগি', 'icon': Icons.egg_alt},
-    {'name': 'গোল্ডফিশ', 'price': '১০০ টাকা',
-      'category': 'মাছ', 'icon': Icons.water},
-    {'name': 'চাল', 'price': '৭০ টাকা/কেজি',
-      'category': 'খাবার', 'icon': Icons.rice_bowl},
-    {'name': 'হেডফোন', 'price': '৩৫০ টাকা',
-      'category': 'ইলেকট্রনিক্স', 'icon': Icons.headphones},
+    {
+      'name': 'সুন্দর শার্ট',
+      'price': '৫৫০ টাকা',
+      'category': 'পোশাক',
+      'icon': Icons.checkroom,
+    },
+    {
+      'name': 'স্মার্টফোন',
+      'price': '১২,০০০ টাকা',
+      'category': 'মোবাইল',
+      'icon': Icons.phone_android,
+    },
+    {
+      'name': 'দেশি মুরগি',
+      'price': '৭০০ টাকা',
+      'category': 'মুরগি',
+      'icon': Icons.egg_alt,
+    },
+    {
+      'name': 'গোল্ডফিশ',
+      'price': '১০০ টাকা',
+      'category': 'মাছ',
+      'icon': Icons.water,
+    },
+    {
+      'name': 'চাল',
+      'price': '৭০ টাকা/কেজি',
+      'category': 'খাবার',
+      'icon': Icons.rice_bowl,
+    },
+    {
+      'name': 'হেডফোন',
+      'price': '৩৫০ টাকা',
+      'category': 'ইলেকট্রনিক্স',
+      'icon': Icons.headphones,
+    },
   ];
 
   Widget homeScreen() {
     final filteredProducts = products.where((product) {
-      final categoryMatch = selectedCategory == 'সব পণ্য' ||
+      final categoryMatch =
+          selectedCategory == 'সব পণ্য' ||
           product['category'] == selectedCategory;
 
       final searchMatch = product['name']
@@ -128,7 +154,10 @@ class _HomePageState extends State<HomePage> {
               SizedBox(height: 8),
               Text(
                 'আপনার দোকান, সবার বাজার!',
-                style: TextStyle(color: Colors.white, fontSize: 17),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                ),
               ),
             ],
           ),
@@ -161,7 +190,10 @@ class _HomePageState extends State<HomePage> {
 
         const Text(
           'পণ্যের ক্যাটাগরি',
-          style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 19,
+            fontWeight: FontWeight.bold,
+          ),
         ),
 
         const SizedBox(height: 10),
@@ -187,7 +219,10 @@ class _HomePageState extends State<HomePage> {
 
         const Text(
           'জনপ্রিয় পণ্যসমূহ',
-          style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 19,
+            fontWeight: FontWeight.bold,
+          ),
         ),
 
         const SizedBox(height: 12),
@@ -229,7 +264,9 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 6),
                     Text(
                       product['price'].toString(),
-                      style: const TextStyle(color: Colors.green),
+                      style: const TextStyle(
+                        color: Colors.green,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -246,7 +283,9 @@ class _HomePageState extends State<HomePage> {
         if (filteredProducts.isEmpty)
           const Padding(
             padding: EdgeInsets.all(20),
-            child: Center(child: Text('কোনো পণ্য পাওয়া যায়নি')),
+            child: Center(
+              child: Text('কোনো পণ্য পাওয়া যায়নি'),
+            ),
           ),
       ],
     );
@@ -258,28 +297,47 @@ class _HomePageState extends State<HomePage> {
       children: [
         const Text(
           'সকল ক্যাটাগরি',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 15),
-        ...categories.map((category) => Card(
-          child: ListTile(
-            leading: const Icon(Icons.category, color: Colors.green),
-            title: Text(category),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              setState(() {
-                selectedCategory = category;
-                selectedIndex = 0;
-              });
-            },
+        ...categories.map(
+          (category) => Card(
+            child: ListTile(
+              leading: const Icon(
+                Icons.category,
+                color: Colors.green,
+              ),
+              title: Text(category),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+              ),
+              onTap: () {
+                setState(() {
+                  selectedCategory = category;
+                  selectedIndex = 0;
+                });
+              },
+            ),
           ),
-        )),
+        ),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final pages = [
+      homeScreen(),
+      categoryScreen(),
+      const ApprovedShopsPage(),
+      const OrdersPage(),
+      const ProfilePage(),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green,
@@ -296,7 +354,8 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(
                   builder: (_) => const SimplePage(
                     title: 'নোটিফিকেশন',
-                    message: 'আপনার নতুন নোটিফিকেশন এখানে দেখা যাবে।',
+                    message:
+                        'আপনার নতুন নোটিফিকেশন এখানে দেখা যাবে।',
                     icon: Icons.notifications,
                   ),
                 ),
@@ -309,12 +368,7 @@ class _HomePageState extends State<HomePage> {
 
       body: IndexedStack(
         index: selectedIndex,
-        children: [
-          homeScreen(),
-          categoryScreen(),
-          const OrdersPage(),
-          const ProfilePage(),
-        ],
+        children: pages,
       ),
 
       bottomNavigationBar: NavigationBar(
@@ -332,6 +386,10 @@ class _HomePageState extends State<HomePage> {
           NavigationDestination(
             icon: Icon(Icons.category),
             label: 'ক্যাটাগরি',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.store),
+            label: 'দোকান',
           ),
           NavigationDestination(
             icon: Icon(Icons.shopping_bag),
@@ -455,7 +513,6 @@ class _ProfilePageState extends State<ProfilePage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('বাতিল'),
           ),
-         
           ElevatedButton(
             onPressed: () async {
               if (nameController.text.trim().isEmpty ||
@@ -491,7 +548,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('দোকানের আবেদন সফলভাবে জমা হয়েছে'),
+                    content: Text(
+                      'দোকানের আবেদন সফলভাবে জমা হয়েছে',
+                    ),
                   ),
                 );
               } catch (e) {
@@ -505,8 +564,6 @@ class _ProfilePageState extends State<ProfilePage> {
               }
             },
             child: const Text('আবেদন করুন'),
-          
-
           ),
         ],
       ),
@@ -620,7 +677,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      phone.isEmpty ? 'আপনার নম্বর যোগ করুন' : phone,
+                      phone.isEmpty
+                          ? 'আপনার নম্বর যোগ করুন'
+                          : phone,
                       style: const TextStyle(color: Colors.white),
                     ),
                   ],
@@ -628,7 +687,10 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               IconButton(
                 onPressed: editProfile,
-                icon: const Icon(Icons.edit, color: Colors.white),
+                icon: const Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
@@ -638,7 +700,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
         const Text(
           'আমার অ্যাকাউন্ট',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
 
         const SizedBox(height: 10),
@@ -671,7 +736,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
         const Text(
           'অন্যান্য সেটিংস',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
 
         const SizedBox(height: 10),
@@ -801,8 +869,11 @@ class OrdersPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.shopping_bag_outlined,
-              size: 75, color: Colors.green),
+          Icon(
+            Icons.shopping_bag_outlined,
+            size: 75,
+            color: Colors.green,
+          ),
           SizedBox(height: 15),
           Text(
             'আমার অর্ডার',
@@ -865,6 +936,254 @@ class SimplePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// APPROVED SHOPS PAGE
+
+class ApprovedShopsPage extends StatefulWidget {
+  const ApprovedShopsPage({super.key});
+
+  @override
+  State<ApprovedShopsPage> createState() =>
+      _ApprovedShopsPageState();
+}
+
+class _ApprovedShopsPageState extends State<ApprovedShopsPage> {
+  late Future<List<Map<String, dynamic>>> shopsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    shopsFuture = loadShops();
+  }
+
+  Future<List<Map<String, dynamic>>> loadShops() async {
+    final response = await Supabase.instance.client
+        .from('shop_applications')
+        .select('owner_name, shop_name, phone, address')
+        .eq('status', 'approved')
+        .order('created_at', ascending: false);
+
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  void refreshShops() {
+    setState(() {
+      shopsFuture = loadShops();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('অনুমোদিত দোকান'),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            onPressed: refreshShops,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: shopsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Colors.green,
+              ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('দোকানের তথ্য লোড হয়নি'),
+                    const SizedBox(height: 10),
+                    Text(
+                      '${snapshot.error}',
+                      textAlign: TextAlign.center,
+                    ),
+                    ElevatedButton(
+                      onPressed: refreshShops,
+                      child: const Text('আবার চেষ্টা করুন'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final shops = snapshot.data ?? [];
+
+          if (shops.isEmpty) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.store_outlined,
+                    size: 75,
+                    color: Colors.green,
+                  ),
+                  SizedBox(height: 15),
+                  Text(
+                    'এখনো কোনো অনুমোদিত দোকান নেই',
+                    style: TextStyle(fontSize: 17),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(15),
+            itemCount: shops.length,
+            itemBuilder: (context, index) {
+              final shop = shops[index];
+
+              return Card(
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(12),
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFE5F5E9),
+                    child: Icon(
+                      Icons.store,
+                      color: Colors.green,
+                    ),
+                  ),
+                  title: Text(
+                    shop['shop_name'] ?? '',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                    ),
+                  ),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      'মালিক: ${shop['owner_name'] ?? ''}',
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 17,
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ShopDetailsPage(shop: shop),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+// SHOP DETAILS PAGE
+
+class ShopDetailsPage extends StatelessWidget {
+  final Map<String, dynamic> shop;
+
+  const ShopDetailsPage({
+    super.key,
+    required this.shop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('দোকানের বিস্তারিত'),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const CircleAvatar(
+            radius: 45,
+            backgroundColor: Color(0xFFE5F5E9),
+            child: Icon(
+              Icons.store,
+              size: 50,
+              color: Colors.green,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Center(
+            child: Text(
+              shop['shop_name'] ?? '',
+              style: const TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Center(
+            child: Chip(
+              avatar: Icon(
+                Icons.verified,
+                color: Colors.green,
+              ),
+              label: Text('অনুমোদিত দোকান'),
+            ),
+          ),
+          const SizedBox(height: 25),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.person,
+                    color: Colors.green,
+                  ),
+                  title: const Text('দোকানের মালিক'),
+                  subtitle: Text(shop['owner_name'] ?? ''),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
+                    Icons.phone,
+                    color: Colors.green,
+                  ),
+                  title: const Text('মোবাইল নম্বর'),
+                  subtitle: Text(shop['phone'] ?? ''),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
+                    Icons.location_on,
+                    color: Colors.green,
+                  ),
+                  title: const Text('দোকানের ঠিকানা'),
+                  subtitle: Text(shop['address'] ?? ''),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
