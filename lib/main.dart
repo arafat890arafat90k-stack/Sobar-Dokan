@@ -27,9 +27,7 @@ class SobarDokanApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         scaffoldBackgroundColor: const Color(0xfff5f8f5),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.green,
@@ -44,21 +42,86 @@ class SobarDokanApp extends StatelessWidget {
 
 // ================= AUTH GATE =================
 
-class AuthGate extends StatelessWidget {
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  String? checkedUserId;
+  Future<bool>? adminFuture;
+
+  Future<bool> checkAdmin(String userId) async {
+    final result = await supabase
+        .from('app_admins')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+
+    return result != null;
+  }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<AuthState>(
       stream: supabase.auth.onAuthStateChange,
       builder: (context, snapshot) {
-        final session = supabase.auth.currentSession;
+        final user = supabase.auth.currentUser;
 
-        if (session == null) {
+        if (user == null) {
+          checkedUserId = null;
+          adminFuture = null;
           return const LoginPage();
         }
 
-        return const HomePage();
+        if (checkedUserId != user.id) {
+          checkedUserId = user.id;
+          adminFuture = checkAdmin(user.id);
+        }
+
+        return FutureBuilder<bool>(
+          future: adminFuture,
+          builder: (context, adminSnapshot) {
+            if (adminSnapshot.connectionState ==
+                ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.green,
+                  ),
+                ),
+              );
+            }
+
+            if (adminSnapshot.hasError) {
+              return Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('অ্যাকাউন্ট যাচাই করা যায়নি।'),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () async {
+                          await supabase.auth.signOut();
+                        },
+                        child: const Text('আবার লগইন করুন'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            if (adminSnapshot.data == true) {
+              return const AdminDashboardPage();
+            }
+
+            return const HomePage();
+          },
+        );
       },
     );
   }
@@ -150,12 +213,12 @@ class _LoginPageState extends State<LoginPage> {
 
         if (result.session == null) {
           throw Exception(
-            'অ্যাকাউন্ট তৈরি হয়েছে, কিন্তু লগইন সেশন পাওয়া যায়নি। '
-            'Supabase Authentication থেকে Confirm email বন্ধ আছে কি না পরীক্ষা করুন।',
+            'অ্যাকাউন্ট তৈরি হয়েছে। Supabase Authentication থেকে '
+            'Email Confirmation বন্ধ করুন, তারপর লগইন করুন।',
           );
         }
 
-        await supabase.from('user_profiles').insert({
+        await supabase.from('user_profiles').upsert({
           'id': user.id,
           'full_name': name,
           'phone': phone,
@@ -188,7 +251,6 @@ class _LoginPageState extends State<LoginPage> {
 
   void showMessage(String message) {
     if (!mounted) return;
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
@@ -233,9 +295,8 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.green,
                     ),
                   ),
-                  const Text('কেনাকাটা হোক সবার জন্য সহজ'),
+                  const Text('আপনার দোকান, সবার বাজার!'),
                   const SizedBox(height: 35),
-
                   Text(
                     isRegister ? 'নতুন অ্যাকাউন্ট খুলুন' : 'লগইন করুন',
                     style: const TextStyle(
@@ -267,7 +328,6 @@ class _LoginPageState extends State<LoginPage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-
                   const SizedBox(height: 14),
 
                   TextField(
@@ -304,7 +364,9 @@ class _LoginPageState extends State<LoginPage> {
                     RadioGroup<String>(
                       groupValue: accountType,
                       onChanged: (value) {
-                        setState(() => accountType = value!);
+                        if (value != null) {
+                          setState(() => accountType = value);
+                        }
                       },
                       child: Column(
                         children: [
@@ -391,7 +453,7 @@ class _HomePageState extends State<HomePage> {
     ProfilePage(),
   ];
 
-  final titles = [
+  final titles = const [
     'সবার দোকান',
     'ক্যাটাগরি',
     'দোকানসমূহ',
@@ -505,7 +567,6 @@ class _StoreHomePageState extends State<StoreHomePage> {
             ),
           ),
           const SizedBox(height: 18),
-
           TextField(
             controller: searchController,
             onChanged: (value) {
@@ -519,7 +580,6 @@ class _StoreHomePageState extends State<StoreHomePage> {
               ),
             ),
           ),
-
           const SizedBox(height: 20),
           const Text(
             'সাম্প্রতিক পণ্য',
@@ -529,7 +589,6 @@ class _StoreHomePageState extends State<StoreHomePage> {
             ),
           ),
           const SizedBox(height: 12),
-
           FutureBuilder<List<Map<String, dynamic>>>(
             future: loadProducts(),
             builder: (context, snapshot) {
@@ -543,14 +602,15 @@ class _StoreHomePageState extends State<StoreHomePage> {
               }
 
               if (snapshot.hasError) {
-                return const Text('পণ্য লোড করা যায়নি। আবার চেষ্টা করুন।');
+                return const Text('পণ্য লোড করা যায়নি।');
               }
 
               final products = snapshot.data ?? [];
 
               final filtered = products.where((product) {
-                final name =
-                    (product['product_name'] ?? '').toString().toLowerCase();
+                final name = (product['product_name'] ?? '')
+                    .toString()
+                    .toLowerCase();
                 return name.contains(search);
               }).toList();
 
@@ -575,8 +635,7 @@ class _StoreHomePageState extends State<StoreHomePage> {
                   mainAxisSpacing: 12,
                 ),
                 itemBuilder: (context, index) {
-                  final product = filtered[index];
-                  return ProductCard(product: product);
+                  return ProductCard(product: filtered[index]);
                 },
               );
             },
@@ -609,9 +668,14 @@ class ProductCard extends StatelessWidget {
                     image,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Center(
-                      child: Icon(Icons.image_not_supported, size: 45),
-                    ),
+                    errorBuilder: (_, __, ___) {
+                      return const Center(
+                        child: Icon(
+                          Icons.image_not_supported,
+                          size: 45,
+                        ),
+                      );
+                    },
                   )
                 : const Center(
                     child: Icon(Icons.shopping_bag, size: 50),
@@ -702,7 +766,42 @@ class ShopsPage extends StatelessWidget {
         .eq('status', 'approved')
         .order('created_at', ascending: false);
 
-    return List<Map<String, dynamic>>.from(data);
+    final shops = List<Map<String, dynamic>>.from(data);
+
+    for (final shop in shops) {
+      String ownerName = (shop['owner_name'] ?? '').toString();
+
+      if (ownerName.isEmpty || ownerName == 'অতিথি ব্যবহারকারী') {
+        final ownerId = shop['owner_user_id'];
+        final phone = shop['phone'];
+
+        Map<String, dynamic>? profile;
+
+        if (ownerId != null) {
+          profile = await supabase
+              .from('user_profiles')
+              .select('full_name')
+              .eq('id', ownerId)
+              .maybeSingle();
+        }
+
+        if (profile == null && phone != null) {
+          profile = await supabase
+              .from('user_profiles')
+              .select('full_name')
+              .eq('phone', phone)
+              .maybeSingle();
+        }
+
+        ownerName = (profile?['full_name'] ?? '').toString();
+
+        if (ownerName.isNotEmpty) {
+          shop['owner_name'] = ownerName;
+        }
+      }
+    }
+
+    return shops;
   }
 
   @override
@@ -721,7 +820,9 @@ class ShopsPage extends StatelessWidget {
         final shops = snapshot.data ?? [];
 
         if (shops.isEmpty) {
-          return const Center(child: Text('এখনো কোনো অনুমোদিত দোকান নেই।'));
+          return const Center(
+            child: Text('এখনো কোনো অনুমোদিত দোকান নেই।'),
+          );
         }
 
         return ListView.builder(
@@ -736,8 +837,12 @@ class ShopsPage extends StatelessWidget {
                   backgroundColor: Colors.green,
                   child: Icon(Icons.store, color: Colors.white),
                 ),
-                title: Text(shop['shop_name'] ?? ''),
-                subtitle: Text(shop['address'] ?? ''),
+                title: Text(shop['shop_name'] ?? 'দোকান'),
+                subtitle: Text(
+                  'মালিক: ${shop['owner_name'] ?? 'তথ্য পাওয়া যায়নি'}\n'
+                  '${shop['address'] ?? ''}',
+                ),
+                isThreeLine: true,
                 trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () {
                   Navigator.push(
@@ -766,7 +871,9 @@ class ShopDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(shop['shop_name'] ?? 'দোকান')),
+      appBar: AppBar(
+        title: Text(shop['shop_name'] ?? 'দোকান'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -782,7 +889,8 @@ class ShopDetailsPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Text('মালিক: ${shop['owner_name'] ?? ''}'),
+            Text('মালিক: ${shop['owner_name'] ?? 'তথ্য পাওয়া যায়নি'}'),
+            Text('ফোন: ${shop['phone'] ?? ''}'),
             Text('ঠিকানা: ${shop['address'] ?? ''}'),
           ],
         ),
@@ -802,7 +910,11 @@ class OrdersPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.shopping_bag_outlined, size: 65, color: Colors.green),
+          Icon(
+            Icons.shopping_bag_outlined,
+            size: 65,
+            color: Colors.green,
+          ),
           SizedBox(height: 12),
           Text(
             'আপনার অর্ডার এখানে দেখা যাবে।',
@@ -826,6 +938,14 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  late Future<Map<String, dynamic>?> profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    profileFuture = loadProfile();
+  }
+
   Future<Map<String, dynamic>?> loadProfile() async {
     final user = supabase.auth.currentUser;
     if (user == null) return null;
@@ -839,66 +959,91 @@ class _ProfilePageState extends State<ProfilePage> {
     return data;
   }
 
+  Future<void> refreshProfile() async {
+    setState(() {
+      profileFuture = loadProfile();
+    });
+  }
+
   Future<void> applyForShop() async {
     final nameController = TextEditingController();
     final shopController = TextEditingController();
     final addressController = TextEditingController();
 
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('দোকানের আবেদন'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'আপনার নাম'),
-                ),
-                TextField(
-                  controller: shopController,
-                  decoration: const InputDecoration(labelText: 'দোকানের নাম'),
-                ),
-                TextField(
-                  controller: addressController,
-                  decoration: const InputDecoration(labelText: 'দোকানের ঠিকানা'),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('বাতিল'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('আবেদন করুন'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (result != true) return;
-
-    if (nameController.text.trim().isEmpty ||
-        shopController.text.trim().isEmpty ||
-        addressController.text.trim().isEmpty) {
-      showMessage('সব তথ্য পূরণ করুন।');
-      return;
-    }
-
     try {
-      final user = supabase.auth.currentUser!;
+      final result = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('দোকানের আবেদন'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'আপনার নাম',
+                    ),
+                  ),
+                  TextField(
+                    controller: shopController,
+                    decoration: const InputDecoration(
+                      labelText: 'দোকানের নাম',
+                    ),
+                  ),
+                  TextField(
+                    controller: addressController,
+                    decoration: const InputDecoration(
+                      labelText: 'দোকানের ঠিকানা',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('বাতিল'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('আবেদন করুন'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (result != true) return;
+
+      if (nameController.text.trim().isEmpty ||
+          shopController.text.trim().isEmpty ||
+          addressController.text.trim().isEmpty) {
+        showMessage('সব তথ্য পূরণ করুন।');
+        return;
+      }
+
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
 
       final profile = await supabase
           .from('user_profiles')
           .select('phone')
           .eq('id', user.id)
           .single();
+
+      final existing = await supabase
+          .from('shop_applications')
+          .select('id,status')
+          .eq('owner_user_id', user.id)
+          .eq('status', 'pending')
+          .maybeSingle();
+
+      if (existing != null) {
+        showMessage('আপনার একটি আবেদন ইতিমধ্যে অপেক্ষমাণ আছে।');
+        return;
+      }
 
       await supabase.from('shop_applications').insert({
         'owner_name': nameController.text.trim(),
@@ -909,15 +1054,18 @@ class _ProfilePageState extends State<ProfilePage> {
         'owner_user_id': user.id,
       });
 
-      showMessage('দোকানের আবেদন জমা হয়েছে। অ্যাডমিনের অনুমোদনের অপেক্ষা করুন।');
+      showMessage('দোকানের আবেদন জমা হয়েছে। অনুমোদনের অপেক্ষা করুন।');
     } catch (e) {
       showMessage('আবেদন জমা হয়নি: $e');
+    } finally {
+      nameController.dispose();
+      shopController.dispose();
+      addressController.dispose();
     }
   }
 
   void showMessage(String message) {
     if (!mounted) return;
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
@@ -930,73 +1078,111 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>?>(
-      future: loadProfile(),
+      future: profileFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final profile = snapshot.data;
-
-        if (profile == null) {
-          return const Center(child: Text('প্রোফাইল পাওয়া যায়নি।'));
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('প্রোফাইল লোড করা যায়নি।'),
+                TextButton(
+                  onPressed: refreshProfile,
+                  child: const Text('আবার চেষ্টা করুন'),
+                ),
+              ],
+            ),
+          );
         }
 
-        return ListView(
-          padding: const EdgeInsets.all(18),
-          children: [
-            const CircleAvatar(
-              radius: 43,
-              backgroundColor: Colors.green,
-              child: Icon(Icons.person, color: Colors.white, size: 48),
-            ),
-            const SizedBox(height: 15),
-            Center(
-              child: Text(
-                profile['full_name'] ?? '',
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+        final profile = snapshot.data;
+        final user = supabase.auth.currentUser;
+
+        if (user == null) {
+          return const Center(child: Text('লগইন করুন।'));
+        }
+
+        final name = profile?['full_name']?.toString() ??
+            user.userMetadata?['full_name']?.toString() ??
+            'ব্যবহারকারী';
+
+        final phone = profile?['phone']?.toString() ?? '';
+        final type = profile?['account_type']?.toString() ?? 'buyer';
+
+        return RefreshIndicator(
+          onRefresh: refreshProfile,
+          child: ListView(
+            padding: const EdgeInsets.all(18),
+            children: [
+              const CircleAvatar(
+                radius: 43,
+                backgroundColor: Colors.green,
+                child: Icon(
+                  Icons.person,
+                  color: Colors.white,
+                  size: 48,
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Center(child: Text(profile['phone'] ?? '')),
-            const SizedBox(height: 25),
-
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text('অ্যাকাউন্টের ধরন'),
-                subtitle: Text(
-                  profile['account_type'] == 'shop_owner'
-                      ? 'দোকান মালিক'
-                      : 'ক্রেতা',
+              const SizedBox(height: 15),
+              Center(
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 8),
+              Center(child: Text(phone)),
+              const SizedBox(height: 25),
 
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.store),
-                title: const Text('দোকান খুলুন'),
-                subtitle: const Text('আপনার দোকানের জন্য আবেদন করুন'),
-                trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: applyForShop,
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.person),
+                  title: const Text('অ্যাকাউন্টের ধরন'),
+                  subtitle: Text(
+                    type == 'shop_owner' ? 'দোকান মালিক' : 'ক্রেতা',
+                  ),
+                ),
               ),
-            ),
 
-            const SizedBox(height: 20),
-
-            FilledButton.icon(
-              onPressed: logout,
-              icon: const Icon(Icons.logout),
-              label: const Text('লগআউট'),
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.red,
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.store),
+                  title: const Text('দোকান খুলুন'),
+                  subtitle: const Text(
+                    'আপনার দোকানের জন্য আবেদন করুন',
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: applyForShop,
+                ),
               ),
-            ),
-          ],
+
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.refresh),
+                  title: const Text('প্রোফাইল আপডেট'),
+                  onTap: refreshProfile,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              FilledButton.icon(
+                onPressed: logout,
+                icon: const Icon(Icons.logout),
+                label: const Text('লগআউট'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -1015,9 +1201,19 @@ class AdminLoginPage extends StatefulWidget {
 class _AdminLoginPageState extends State<AdminLoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
   bool loading = false;
 
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> login() async {
+    if (loading) return;
+
     setState(() => loading = true);
 
     try {
@@ -1045,22 +1241,20 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const AdminDashboardPage(),
-        ),
-      );
+      Navigator.pop(context);
     } on AuthException catch (e) {
       showMessage(e.message);
     } catch (e) {
       showMessage(e.toString().replaceFirst('Exception: ', ''));
     } finally {
-      if (mounted) setState(() => loading = false);
+      if (mounted) {
+        setState(() => loading = false);
+      }
     }
   }
 
   void showMessage(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
@@ -1098,7 +1292,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
               child: FilledButton(
                 onPressed: loading ? null : login,
                 child: loading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
                     : const Text('লগইন'),
               ),
             ),
@@ -1115,10 +1311,19 @@ class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
   @override
-  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+  State<AdminDashboardPage> createState() =>
+      _AdminDashboardPageState();
 }
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  late Future<List<Map<String, dynamic>>> applicationsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    applicationsFuture = loadApplications();
+  }
+
   Future<List<Map<String, dynamic>>> loadApplications() async {
     final data = await supabase
         .from('shop_applications')
@@ -1126,6 +1331,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         .order('created_at', ascending: false);
 
     return List<Map<String, dynamic>>.from(data);
+  }
+
+  void refreshApplications() {
+    setState(() {
+      applicationsFuture = loadApplications();
+    });
   }
 
   Future<void> updateStatus(int id, String status) async {
@@ -1138,7 +1349,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           })
           .eq('id', id);
 
-      setState(() {});
+      refreshApplications();
+
       showMessage(
         status == 'approved'
             ? 'দোকান অনুমোদন করা হয়েছে।'
@@ -1150,6 +1362,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   void showMessage(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
@@ -1157,14 +1370,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   Future<void> logout() async {
     await supabase.auth.signOut();
-
-    if (!mounted) return;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-      (route) => false,
-    );
   }
 
   @override
@@ -1174,13 +1379,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         title: const Text('অ্যাডমিন ড্যাশবোর্ড'),
         actions: [
           IconButton(
+            onPressed: refreshApplications,
+            icon: const Icon(Icons.refresh),
+          ),
+          IconButton(
             onPressed: logout,
             icon: const Icon(Icons.logout),
           ),
         ],
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: loadApplications(),
+        future: applicationsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -1194,64 +1403,118 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
           final applications = snapshot.data ?? [];
 
-          if (applications.isEmpty) {
-            return const Center(child: Text('কোনো দোকানের আবেদন নেই।'));
-          }
+          final pendingCount = applications
+              .where((item) => item['status'] == 'pending')
+              .length;
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: applications.length,
-            itemBuilder: (context, index) {
-              final item = applications[index];
-              final id = item['id'] as int;
-              final status = item['status']?.toString() ?? 'pending';
-
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item['shop_name'] ?? '',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Card(
+                  color: Colors.green.shade50,
+                  child: ListTile(
+                    leading: const Icon(
+                      Icons.store,
+                      color: Colors.green,
+                      size: 35,
+                    ),
+                    title: Text(
+                      'মোট দোকানের আবেদন: ${applications.length}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 7),
-                      Text('মালিক: ${item['owner_name'] ?? ''}'),
-                      Text('ফোন: ${item['phone'] ?? ''}'),
-                      Text('ঠিকানা: ${item['address'] ?? ''}'),
-                      const SizedBox(height: 8),
-                      Text('অবস্থা: $status'),
-                      if (status == 'pending') ...[
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: FilledButton(
-                                onPressed: () =>
-                                    updateStatus(id, 'approved'),
-                                child: const Text('অনুমোদন'),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () =>
-                                    updateStatus(id, 'rejected'),
-                                child: const Text('বাতিল'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
+                    ),
+                    subtitle: Text('অনুমোদনের অপেক্ষায়: $pendingCount'),
                   ),
                 ),
-              );
-            },
+              ),
+
+              Expanded(
+                child: applications.isEmpty
+                    ? const Center(
+                        child: Text('কোনো দোকানের আবেদন নেই।'),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: applications.length,
+                        itemBuilder: (context, index) {
+                          final item = applications[index];
+                          final id = item['id'] as int;
+                          final status =
+                              item['status']?.toString() ?? 'pending';
+
+                          return Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item['shop_name'] ?? '',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 7),
+                                  Text(
+                                    'মালিক: ${item['owner_name'] ?? ''}',
+                                  ),
+                                  Text('ফোন: ${item['phone'] ?? ''}'),
+                                  Text(
+                                    'ঠিকানা: ${item['address'] ?? ''}',
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'অবস্থা: $status',
+                                    style: TextStyle(
+                                      color: status == 'approved'
+                                          ? Colors.green
+                                          : status == 'rejected'
+                                              ? Colors.red
+                                              : Colors.orange,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+
+                                  if (status == 'pending') ...[
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: FilledButton(
+                                            onPressed: () =>
+                                                updateStatus(
+                                              id,
+                                              'approved',
+                                            ),
+                                            child: const Text('অনুমোদন'),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: OutlinedButton(
+                                            onPressed: () =>
+                                                updateStatus(
+                                              id,
+                                              'rejected',
+                                            ),
+                                            child: const Text('বাতিল'),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),
